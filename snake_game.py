@@ -22,6 +22,7 @@ screen=pygame.display.set_mode(size)
 pygame.display.set_caption('Змейка')
 timer = pygame.time.Clock()
 courier = pygame.font.SysFont("courier", 36)
+courier2 = pygame.font.SysFont("courier", 50)
 
 class SnakeBlock:
     def __init__(self,x,y):
@@ -45,32 +46,78 @@ def draw_block(color,row,column):
     pygame.draw.rect(screen, color, [SIZE_BLOCK + column * SIZE_BLOCK + MARGIN * (column + 1),
                                      HEADER_MARGIN + SIZE_BLOCK + row * SIZE_BLOCK + MARGIN * (row + 1), SIZE_BLOCK,
                                      SIZE_BLOCK])
-snake_block = [SnakeBlock(9,8), SnakeBlock(9,9),SnakeBlock(9,10)]
-apple = get_random_empty_block()
+
+def draw_menu():
+    screen.fill(FRAME_COLOR)
+    pygame.draw.rect(screen, HEADER_COLOR, [0, 0, size[0], size[1]])
+
+    title = courier2.render("SNAKE GAME", True, WHITE)
+    start = courier.render("Press ENTER to start", False, WHITE)
+    exit_text = courier.render("Press ESC to exit", False, WHITE)
+
+    screen.blit(title, (size[0] // 2 - title.get_width() // 2, 100))
+    screen.blit(start, (size[0] // 2 - start.get_width() // 2, 250))
+    screen.blit(exit_text, (size[0] // 2 - exit_text.get_width() // 2, 310))
+
+    pygame.display.flip()
+
+def start_game():
+    global snake_block, apple, d_row, d_col, total, speed
+    snake_block = [SnakeBlock(9,8), SnakeBlock(9,9),SnakeBlock(9,10)]
+    apple = get_random_empty_block()
+    d_row = 0
+    d_col = 1
+    total = 0
+    speed = 1
+
+GAME_MENU = 0
+GAME_RUN = 1
+game_state = GAME_MENU
+
+snake_block = []
+apple = None
 d_row = 0
-d_col = 1
+d_col = 0
 total = 0
 speed = 1
 
 while True:
+    timer.tick(60)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             print('exit')
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP and d_col !=0:
-                d_row=-1
-                d_col=0
-            elif event.key == pygame.K_DOWN and d_col!=0:
-                d_row=1
-                d_col=0
-            elif event.key == pygame.K_LEFT and d_row!=0:
-                d_row = 0
-                d_col=-1
-            elif event.key == pygame.K_RIGHT and d_row!=0:
-                d_row=0
-                d_col=1
+
+        if game_state==GAME_MENU:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    start_game()
+                    game_state = GAME_RUN
+                elif event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+
+
+        elif game_state==GAME_RUN:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_UP and d_col !=0:
+                    d_row=-1
+                    d_col=0
+                elif event.key == pygame.K_DOWN and d_col!=0:
+                    d_row=1
+                    d_col=0
+                elif event.key == pygame.K_LEFT and d_row!=0:
+                    d_row = 0
+                    d_col=-1
+                elif event.key == pygame.K_RIGHT and d_row!=0:
+                    d_row=0
+                    d_col=1
+
+    if game_state==GAME_MENU:
+        draw_menu()
+        continue
 
 
     screen.fill(FRAME_COLOR)
