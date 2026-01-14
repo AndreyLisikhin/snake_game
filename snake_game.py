@@ -46,13 +46,8 @@ class Button:
 
         pygame.draw.rect(screen, color, self.rect, border_radius=8)
         text_surface = courier.render(self.text, True, WHITE)
-        screen.blit(
-            text_surface,
-            (
-                self.rect.centerx - text_surface.get_width() // 2,
-                self.rect.centery - text_surface.get_height() // 2
-            )
-        )
+        screen.blit(text_surface,(self.rect.centerx - text_surface.get_width() // 2,
+                self.rect.centery - text_surface.get_height() // 2))
 
     def is_clicked(self, event):
         return (event.type == pygame.MOUSEBUTTONDOWN and
@@ -62,15 +57,28 @@ class Button:
 def draw_pause():
     screen.fill(HEADER_COLOR)
     pause_text = courier2.render("Pause", True, WHITE)
-    info_1 = courier.render("ENTER - continue", True, WHITE)
-    info_2 = courier.render("ESC - menu", True, WHITE)
-
-
     screen.blit(pause_text, (size[0]//2 - pause_text.get_width()//2,200))
-    screen.blit(info_1, (size[0]//2 - info_1.get_width()//2,280))
-    screen.blit(info_2, (size[0] // 2 - info_1.get_width() // 2, 320))
+    continue_button.draw()
+    menu_button.draw()
 
     pygame.display.flip()
+
+def draw_game_over():
+    screen.fill(FRAME_COLOR)
+
+    title = courier.render("GAME OVER", True, RED)
+    score_text = courier.render(f"Score: {total}", True, WHITE)
+    speed_text = courier.render(f"Speed: {speed}", True, WHITE)
+
+    screen.blit(title, (size[0]//2 - title.get_width()//2, 80))
+    screen.blit(score_text, (size[0]//2 - score_text.get_width()//2, 160))
+    screen.blit(speed_text, (size[0]//2 - speed_text.get_width()//2, 200))
+
+    menu_button.draw()
+    restart_button.draw()
+
+    pygame.display.flip()
+
 
 
 def get_random_empty_block():
@@ -101,7 +109,9 @@ def draw_menu():
 
 start_button = Button(size[0] // 2 - 100, 280, 200, 50, "START")
 exit_button = Button(size[0] // 2 - 100, 350, 200, 50, "EXIT")
-
+continue_button = Button(size[0] // 2 - 100, 280, 200, 50, "CONTINUE")
+menu_button = Button(size[0] // 2 - 100, 350, 200, 50, "MENU")
+restart_button = Button(size[0] // 2 - 100, 280, 200, 50, "RESTART")
 
 def start_game():
     global snake_block, apple, d_row, d_col, total, speed
@@ -115,6 +125,7 @@ def start_game():
 GAME_MENU = 0
 GAME_RUN = 1
 GAME_PAUSE =2
+GAME_OVER =3
 game_state = GAME_MENU
 
 snake_block = []
@@ -167,11 +178,25 @@ while True:
                     d_row=0
                     d_col=1
         elif game_state==GAME_PAUSE:
+            if menu_button.is_clicked(event):
+                game_state = GAME_MENU
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     game_state = GAME_MENU
                 elif event.key == pygame.K_RETURN:
                     game_state = GAME_RUN
+        elif game_state==GAME_OVER:
+            if restart_button.is_clicked(event):
+                start_game()
+                game_state = GAME_RUN
+            if menu_button.is_clicked(event):
+                game_state = GAME_MENU
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    start_game()
+                    game_state = GAME_RUN
+                elif event.key == pygame.K_ESCAPE:
+                    game_state = GAME_MENU
 
     if game_state==GAME_MENU:
         draw_menu()
@@ -179,6 +204,15 @@ while True:
     if game_state == GAME_PAUSE:
         draw_pause()
         continue
+    if game_state == GAME_OVER:
+        draw_game_over()
+        continue
+    if game_state == GAME_RUN:
+        head = snake_block[-1]
+        if not head.is_inside():
+            print('game over')
+            game_state = GAME_OVER
+            continue
 
     screen.fill(FRAME_COLOR)
     pygame.draw.rect(screen, HEADER_COLOR, [0,0,size[0], HEADER_MARGIN])
@@ -198,9 +232,8 @@ while True:
 
     head = snake_block[-1]
     if not head.is_inside():
-        print(f'Crash\nTotal: {total}\nSpeed: {speed}')
-        pygame.quit()
-        sys.exit()
+        print('game over')
+        game_state = GAME_OVER
 
     draw_block(RED,apple.x,apple.y)
     for block in snake_block:
@@ -214,9 +247,7 @@ while True:
 
     new_head = SnakeBlock(head.x+d_row,head.y+d_col)
     if new_head in snake_block:
-        print(f'Crash yourself\nTotal: {total}\nSpeed: {speed}')
-        pygame.quit()
-        sys.exit()
+        game_state = GAME_OVER
     snake_block.append(new_head)
     snake_block.pop(0)
 
