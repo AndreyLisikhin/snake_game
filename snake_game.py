@@ -59,6 +59,19 @@ class Button:
             event.button == 1 and
             self.rect.collidepoint(event.pos))
 
+def draw_pause():
+    screen.fill(HEADER_COLOR)
+    pause_text = courier2.render("Pause", True, WHITE)
+    info_1 = courier.render("ENTER - continue", True, WHITE)
+    info_2 = courier.render("ESC - menu", True, WHITE)
+
+
+    screen.blit(pause_text, (size[0]//2 - pause_text.get_width()//2,200))
+    screen.blit(info_1, (size[0]//2 - info_1.get_width()//2,280))
+    screen.blit(info_2, (size[0] // 2 - info_1.get_width() // 2, 320))
+
+    pygame.display.flip()
+
 
 def get_random_empty_block():
     x = random.randint(0,COUNT_BLOCKS-1)
@@ -101,6 +114,7 @@ def start_game():
 
 GAME_MENU = 0
 GAME_RUN = 1
+GAME_PAUSE =2
 game_state = GAME_MENU
 
 snake_block = []
@@ -137,6 +151,9 @@ while True:
 
         elif game_state==GAME_RUN:
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    game_state = GAME_PAUSE
+            if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP and d_col !=0:
                     d_row=-1
                     d_col=0
@@ -149,11 +166,19 @@ while True:
                 elif event.key == pygame.K_RIGHT and d_row!=0:
                     d_row=0
                     d_col=1
+        elif game_state==GAME_PAUSE:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    game_state = GAME_MENU
+                elif event.key == pygame.K_RETURN:
+                    game_state = GAME_RUN
 
     if game_state==GAME_MENU:
         draw_menu()
         continue
-
+    if game_state == GAME_PAUSE:
+        draw_pause()
+        continue
 
     screen.fill(FRAME_COLOR)
     pygame.draw.rect(screen, HEADER_COLOR, [0,0,size[0], HEADER_MARGIN])
