@@ -33,6 +33,33 @@ class SnakeBlock:
     def __eq__(self, other):
         return isinstance(other,SnakeBlock) and self.x==other.x and self.y==other.y
 
+class Button:
+    def __init__(self, x, y, w, h, text):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.text = text
+        self.color_idle = (0, 200, 200)
+        self.color_hover = (0, 150, 150)
+
+    def draw(self):
+        mouse_pos = pygame.mouse.get_pos()
+        color = self.color_hover if self.rect.collidepoint(mouse_pos) else self.color_idle
+
+        pygame.draw.rect(screen, color, self.rect, border_radius=8)
+        text_surface = courier.render(self.text, True, WHITE)
+        screen.blit(
+            text_surface,
+            (
+                self.rect.centerx - text_surface.get_width() // 2,
+                self.rect.centery - text_surface.get_height() // 2
+            )
+        )
+
+    def is_clicked(self, event):
+        return (event.type == pygame.MOUSEBUTTONDOWN and
+            event.button == 1 and
+            self.rect.collidepoint(event.pos))
+
+
 def get_random_empty_block():
     x = random.randint(0,COUNT_BLOCKS-1)
     y = random.randint(0,COUNT_BLOCKS-1)
@@ -52,14 +79,16 @@ def draw_menu():
     pygame.draw.rect(screen, HEADER_COLOR, [0, 0, size[0], size[1]])
 
     title = courier2.render("SNAKE GAME", True, WHITE)
-    start = courier.render("Press ENTER to start", False, WHITE)
-    exit_text = courier.render("Press ESC to exit", False, WHITE)
+    screen.blit(title, (size[0] // 2 - title.get_width() // 2, 180))
 
-    screen.blit(title, (size[0] // 2 - title.get_width() // 2, 100))
-    screen.blit(start, (size[0] // 2 - start.get_width() // 2, 250))
-    screen.blit(exit_text, (size[0] // 2 - exit_text.get_width() // 2, 310))
+    start_button.draw()
+    exit_button.draw()
 
     pygame.display.flip()
+
+start_button = Button(size[0] // 2 - 100, 280, 200, 50, "START")
+exit_button = Button(size[0] // 2 - 100, 350, 200, 50, "EXIT")
+
 
 def start_game():
     global snake_block, apple, d_row, d_col, total, speed
@@ -91,6 +120,12 @@ while True:
             sys.exit()
 
         if game_state==GAME_MENU:
+            if start_button.is_clicked(event):
+                start_game()
+                game_state = GAME_RUN
+            if exit_button.is_clicked(event):
+                pygame.quit()
+                sys.exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     start_game()
