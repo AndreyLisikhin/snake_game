@@ -6,6 +6,7 @@ pygame.init()
 SIZE_BLOCK = 20
 FRAME_COLOR = (0,255,204)
 WHITE = (255,255,255)
+BLACK = (6,2,8)
 BLUE = (204,255,255)
 RED = (221,0,0)
 HEADER_COLOR = (0,204,153)
@@ -67,8 +68,8 @@ def draw_game_over():
     screen.fill(FRAME_COLOR)
 
     title = courier.render("GAME OVER", True, RED)
-    score_text = courier.render(f"Score: {total}", True, WHITE)
-    speed_text = courier.render(f"Speed: {speed}", True, WHITE)
+    score_text = courier.render(f"Score: {total}", True, BLACK)
+    speed_text = courier.render(f"Speed: {speed}", True, BLACK)
 
     screen.blit(title, (size[0]//2 - title.get_width()//2, 80))
     screen.blit(score_text, (size[0]//2 - score_text.get_width()//2, 160))
