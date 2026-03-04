@@ -34,8 +34,6 @@ courier2 = pygame.font.SysFont("courier", 50)
 player_name =""
 MAX_NAME_LEN=10
 score_saved = False
-def clear_score():
-    save_scores([])
 
 def handle_name_input(event):
     global player_name
@@ -53,9 +51,24 @@ def handle_name_input(event):
 def draw_name_screen():
     screen.fill((30, 30, 30))
 
-    title = courier.render(f"Введите имя: {player_name}", True, WHITE)
+    if len(player_name) ==0:
+        display_text = 'Введите имя...'
+        text_color = (150,150,150)
+    else:
+        display_text = player_name
+        text_color = WHITE
 
-    screen.blit(title, (size[0]//2 - title.get_width()//2, 150))
+    name_surface =  courier.render(display_text, True, text_color)
+    screen.blit(name_surface, (size[0] // 2 - name_surface.get_width() // 2, 150))
+
+    if pygame.time.get_ticks()%1000<500 and len(player_name)>0:
+        cursor_surface = courier.render('|', True, WHITE)
+        screen.blit(cursor_surface, (size[0]//2 - name_surface.get_width()//2 + name_surface.get_width(), 150))
+
+    if len(player_name)==0:
+        button_play.color_idle = (100,100,100)
+    else:
+        button_play.color_idle = (0,200,200)
 
     button_play.draw()
     button_exit.draw()
@@ -80,6 +93,10 @@ def add_score(name, score):
     scores.sort(key=lambda x: x["score"], reverse=True)
     scores = scores[:5]
     save_scores(scores)
+
+def clear_score():
+    save_scores([])
+clear_score()
 
 class SnakeBlock:
     def __init__(self,x,y):
@@ -168,16 +185,14 @@ def draw_leaderboard(x, y):
     scores = load_scores()
     if not scores:
         line = courier.render("—", True, WHITE)
-        screen.blit(
-            line,
-            (size[0] // 2 - line.get_width() // 2, y + 40)
-        )
+        screen.blit(line,(size[0] // 2 - line.get_width() // 2, y + 40))
         return
 
+    left_margin = size[0]//2-150
     for i, record in enumerate(scores):
         text = f"{i+1}. {record['name']} — {record['score']}"
         line = courier.render(text, True, WHITE)
-        screen.blit(line, (size[0]//2-line.get_width()//2, y + 40 + i * 30))
+        screen.blit(line, (left_margin, y + 40 + i * 30))
 
 
 def draw_menu():
@@ -246,8 +261,11 @@ while True:
                 elif event.unicode.isprintable() and len(player_name)<MAX_NAME_LEN:
                     player_name += event.unicode
             elif button_play.is_clicked(event):
-                start_game()
-                game_state = GAME_RUN
+                if len(player_name)>0:
+                    start_game()
+                    game_state = GAME_RUN
+                else:
+                    print('Сначала введите имя!')
             elif button_exit.is_clicked(event):
                 game_state = GAME_MENU
 
@@ -260,10 +278,7 @@ while True:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    start_game()
-                    game_state = GAME_RUN
-                elif event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
 
